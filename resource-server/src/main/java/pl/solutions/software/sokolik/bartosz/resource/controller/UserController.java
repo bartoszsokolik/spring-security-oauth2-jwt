@@ -1,6 +1,7 @@
 package pl.solutions.software.sokolik.bartosz.resource.controller;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +18,7 @@ public class UserController {
 
     @GetMapping("/authority/user")
     @PreAuthorize("hasAuthority('READ_ONLY')")
-    public String authorityUserContent() {
+    public String authorityUserContent(Authentication principal) {
         return "authority user content";
     }
 
