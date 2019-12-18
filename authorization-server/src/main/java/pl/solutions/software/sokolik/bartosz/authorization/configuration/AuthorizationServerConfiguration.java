@@ -1,6 +1,8 @@
 package pl.solutions.software.sokolik.bartosz.authorization.configuration;
 
-import javax.sql.DataSource;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.RSAKey.Builder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +18,10 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 
+import javax.sql.DataSource;
+import java.security.KeyPair;
+import java.security.interfaces.RSAPublicKey;
+
 @Configuration
 @EnableAuthorizationServer
 public class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
@@ -27,11 +33,23 @@ public class AuthorizationServerConfiguration extends AuthorizationServerConfigu
   private AuthenticationManager authenticationManager;
 
   @Bean
+  public KeyPair keyPair() {
+    ClassPathResource ksFile = new ClassPathResource("mytest.jks");
+    KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(ksFile, "mypass".toCharArray());
+    return keyStoreKeyFactory.getKeyPair("mytest");
+  }
+
+  @Bean
   public JwtAccessTokenConverter accessTokenConverter() {
     JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-    KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new ClassPathResource("mytest.jks"), "mypass".toCharArray());
-    converter.setKeyPair(keyStoreKeyFactory.getKeyPair("mytest"));
+    converter.setKeyPair(keyPair());
     return converter;
+  }
+
+  @Bean
+  public JWKSet jwkSet() {
+    RSAKey key = new Builder((RSAPublicKey) keyPair().getPublic()).build();
+    return new JWKSet(key);
   }
 
   @Bean
